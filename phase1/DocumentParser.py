@@ -67,11 +67,11 @@ class DocumentParser:
         result: AnalyzeResult = poller.result()
         return result
 
-    def _analyzeExtractedData(self, extractedData):
+    def _analyzeExtractedData(self, extractedData) -> dict[str, str]:
         """
         Function to analyze extracted data from a PDF document and format it into a specific JSON structure.
         :param extractedData: The extracted data from document intelligence.
-        :return:
+        :return: A dictionary containing the formatted data.
         """
 
         with open("./desiredFormatAndTranslation.txt", "r", encoding="utf-8") as f:
@@ -103,15 +103,24 @@ class DocumentParser:
             firstResponse["mobilePhone"] = '0' + firstResponse["mobilePhone"][1:]
         return firstResponse
 
-    def runAnalysis(self, filePath: str):
+    def runAnalysis(self, filePath: str) -> dict[str, str] | None:
+        """
+        Function to run the analysis on a PDF file and return the extracted data in a specific JSON format.
+        :param filePath: str: Path to the PDF file to be analyzed.
+        :return: A dictionary containing the formatted data extracted from the PDF file, or None if no data was extracted or an error occurred.
+        """
         extractedResult = self._analyzePDF(filePath)
         if extractedResult is not None:
-            formattedData = self._analyzeExtractedData(extractedResult)
-            print(json.dumps(formattedData, indent=4, ensure_ascii=False))
+            return self._analyzeExtractedData(extractedResult)
         else:
             print("No data extracted from the PDF.")
-
-
-if __name__ == "__main__":
-    documentParser = DocumentParser()
-    documentParser.runAnalysis("../data/phase1_data/283_ex1.pdf")
+            return None
+#
+#
+# def main():
+#     documentParser = DocumentParser()
+#     documentParser.runAnalysis("../data/phase1_data/283_ex1.pdf")
+#
+#
+# if __name__ == "__main__":
+#     main()
