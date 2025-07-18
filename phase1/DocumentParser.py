@@ -40,6 +40,22 @@ def _extractJsonContent(text):
     return None
 
 
+def modifyResponse(response):
+    """
+    First digits are not always read correctly, because there is a mark above it,
+    but always start with 0 (all Israeli phone numbers do), so if the phone number is not empty,
+    change the first digit to 0. If used in a different country, this logic may need to be changed.
+
+    :param response: The response dictionary containing phone numbers.
+    :return: The modified response dictionary with phone numbers starting with 0.
+    """
+    if response["landlinePhone"] != "":
+        response["landlinePhone"] = '0' + response["mobilePhone"][1:]
+    if response["mobilePhone"] != "":
+        response["mobilePhone"] = '0' + response["mobilePhone"][1:]
+    return response
+
+
 class DocumentParser:
     """
     Class to handle PDF document parsing and data extraction using Azure Document Intelligence and OpenAI.
@@ -60,6 +76,9 @@ class DocumentParser:
         """
         Function to analyze layout and extract data from a PDF document.
 
+        Documentation used:
+        https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/quickstarts/get-started-sdks-rest-api?view=doc-intel-4.0.0&pivots=programming-language-python
+
         Args:
             pdf_path (str): Path to the PDF file to be analyzed.
         """
@@ -79,7 +98,7 @@ class DocumentParser:
         result: AnalyzeResult = poller.result()
         return result
 
-    def _analyzeExtractedData(self, extractedData) -> dict[str, str]:
+    def _analyzeExtractedData(self, extractedData):
         """
         Function to analyze extracted data from a PDF document and format it into a specific JSON structure.
         :param extractedData: The extracted data from document intelligence.
@@ -94,10 +113,11 @@ class DocumentParser:
                        "If the response seems inadequate or is absent, leave the values as empty strings.")
 
         response = self.openAiClient.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             max_tokens=4096,
             temperature=0.3,  # Lower temperature for more deterministic output
             top_p=0.3,  # Lower top_p for more focused output
+            n=3,  # Generate three responses for verification
             messages=[
                 ChatCompletionSystemMessageParam(role="system", content="You are a helpful assistant."),
                 ChatCompletionUserMessageParam(role="user", content=text_prompt)
@@ -105,17 +125,15 @@ class DocumentParser:
         )
 
         firstResponse = _extractJsonContent(response.choices[0].message.content)
+        secondResponse = _extractJsonContent(response.choices[1].message.content)
+        thirdResponse = _extractJsonContent(response.choices[2].message.content)
 
-        # First digits are not always read correctly, because there is a mark above it,
-        # but always start with 0 (all Israeli phone numbers do), so if the phone number is not empty,
-        # change the first digit to 0. If used in a different country, this logic may need to be changed.
-        if firstResponse["landlinePhone"] != "":
-            firstResponse["landlinePhone"] = '0' + firstResponse["mobilePhone"][1:]
-        if firstResponse["mobilePhone"] != "":
-            firstResponse["mobilePhone"] = '0' + firstResponse["mobilePhone"][1:]
-        return firstResponse
+        firstResponse = modifyResponse(firstResponse)
+        secondResponse = modifyResponse(secondResponse)
+        thirdResponse = modifyResponse(thirdResponse)
+        return firstResponse, secondResponse, thirdResponse
 
-    def runAnalysis(self, filePath: str) -> dict[str, str] | None:
+    def runAnalysis(self, filePath: str):
         """
         Function to run the analysis on a PDF file and return the extracted data in a specific JSON format.
         :param filePath: str: Path to the PDF file to be analyzed.
@@ -123,16 +141,18 @@ class DocumentParser:
         """
         extractedResult = self._analyzePDF(filePath)
         if extractedResult is not None:
-            return self._analyzeExtractedData(extractedResult)
+            firstResponse, secondResponse, thirdResponse = self._analyzeExtractedData(extractedResult)
+            if firstResponse == secondResponse:  # Responses are identical, returning the first one.
+                return firstResponse
+            else:  # Responses differ, validating using the third response.
+                if firstResponse == thirdResponse:
+                    return firstResponse
+                elif secondResponse == thirdResponse:
+                    return secondResponse
+                else:
+                    print("Responses differ significantly, returning the first response.")
+                    return firstResponse
+
         else:
             print("No data extracted from the PDF.")
             return None
-#
-#
-# def main():
-#     documentParser = DocumentParser()
-#     documentParser.runAnalysis("../data/phase1_data/283_ex1.pdf")
-#
-#
-# if __name__ == "__main__":
-#     main()
