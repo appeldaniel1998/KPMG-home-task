@@ -15,16 +15,28 @@ openAiKey = "9qsKb4fIfag5vRdoqqLl1aWsH1SXJVhrtgoQdeg9XDwTXWbZMyiLJQQJ99BEACYeBjF
 
 def _extractJsonContent(text):
     """
-    Find first { and last } and extract the content between them as JSON.
+    Find and extract the first complete JSON object from text.
 
     :param text: String containing JSON-like content.
     :return: Extracted JSON as dict if found, otherwise None.
     """
     start = text.find('{')
-    end = text.rfind('}')
+    if start == -1:
+        return None
 
-    if start != -1 and end != -1 and start < end:
-        return json.loads(text[start:end + 1])  # +1 to include the closing '}'
+    brace_count = 0
+    for i, char in enumerate(text[start:], start):
+        if char == '{':
+            brace_count += 1
+        elif char == '}':
+            brace_count -= 1
+            if brace_count == 0:
+                # Found the end of the first complete JSON object
+                try:
+                    return json.loads(text[start:i + 1])
+                except json.JSONDecodeError:
+                    return None
+
     return None
 
 
