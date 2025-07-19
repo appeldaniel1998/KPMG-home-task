@@ -3,7 +3,7 @@ The instructions for running the code are as follows:
 * Install the required libraries by running as specified in the [requirements.txt](requirements.txt) file.
 * Run the backend of the application by running the file [Backend.py](backend/Backend.py)
 * Run the frontend of the application by running the file [Frontend.py](frontend/Frontend.py)
-* You can access the frontend by opening a web browser to the url: "http://127.0.0.1:8200"
+* You can access the frontend by opening a web browser to the url: "http://127.0.0.1:8000"
 
 Note: <br>
 * Although some effort was made to reduce runtime, the application may take several seconds to return an answer.<br>
