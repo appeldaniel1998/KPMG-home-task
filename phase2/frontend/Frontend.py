@@ -30,7 +30,7 @@ def sendMessageToServer(message, history, state):
         updated_state = result.get("state", state)
         server_response = result.get("message", "Server error")
         return server_response, updated_state
-    except Exception as e:
+    except Exception as e:  # If the request fails, rerun the function. This is known to be a possibility for an infinite loop.
         return sendMessageToServer(message, history, state)
 
 
