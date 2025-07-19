@@ -108,7 +108,7 @@ class OpenAiClient:
                 ChatCompletionSystemMessageParam(role="system", content="You are a helpful and friendly chatbot assistant."),
                 ChatCompletionUserMessageParam(role="user", content=answerPrompt)
             ],
-            max_tokens=2000
+            max_tokens=10000
         )
 
         return _extractJsonContent(response.choices[0].message.content)

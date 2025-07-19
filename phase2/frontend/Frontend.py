@@ -8,29 +8,32 @@ import requests
 def sendMessageToServer(message, history, state):
     server_url = "http://localhost:8100/newMessage"
 
-    # Send the current message and state to the server
-    response = requests.post(server_url, json={
-        "newMessage": message,
-        "currentState": state,
-        "history": history
-    })
+    try:
+        # Send the current message and state to the server
+        response = requests.post(server_url, json={
+            "newMessage": message,
+            "currentState": state,
+            "history": history
+        })
 
-    # # Check if request was successful
-    # if response.status_code == 200:
-    print(f"Raw response: {response}")
+        # # Check if request was successful
+        # if response.status_code == 200:
+        print(f"Raw response: {response}")
 
-    # Set encoding explicitly for Hebrew text
-    response.encoding = 'utf-8'
-    result = response.json()
+        # Set encoding explicitly for Hebrew text
+        response.encoding = 'utf-8'
+        result = response.json()
 
-    # Check if result is a string (double-encoded JSON) and parse it again
-    if isinstance(result, str):
-        result = json.loads(result)
+        # Check if result is a string and parse it again
+        if isinstance(result, str):
+            result = json.loads(result)
 
-    # Update state with response from server
-    updated_state = result.get("state", state)
-    server_response = result.get("message", "Server error")
-    return server_response, updated_state
+        # Update state with response from server
+        updated_state = result.get("state", state)
+        server_response = result.get("message", "Server error")
+        return server_response, updated_state
+    except Exception as e:
+        return sendMessageToServer(message, history, state)
 
 
 def create_interface(initial_state):
