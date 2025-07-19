@@ -79,6 +79,6 @@ if __name__ == "__main__":
     interface.launch(
         share=False,
         server_name="127.0.0.1",
-        server_port=8000,
+        server_port=8200,
         show_error=True
     )
