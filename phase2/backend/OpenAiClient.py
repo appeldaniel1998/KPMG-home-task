@@ -101,15 +101,14 @@ class OpenAiClient:
         The knowledge base is as follows (in html format): \n{self.knowledgeBase}
         """
 
-
         response = self.openAiClient.chat.completions.create(
             model="gpt-4o",
             messages=[
-                ChatCompletionSystemMessageParam(role="system", content="You are a helpful and friendly chatbot assistant."),
+                ChatCompletionSystemMessageParam(role="system",
+                                                 content="You are a helpful and friendly chatbot assistant."),
                 ChatCompletionUserMessageParam(role="user", content=answerPrompt)
             ],
             max_tokens=10000
         )
 
         return _extractJsonContent(response.choices[0].message.content)
-

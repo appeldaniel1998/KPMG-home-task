@@ -1,11 +1,10 @@
-import json
-
 from flask import Flask, request, jsonify
 
 from phase2.backend.OpenAiClient import OpenAiClient
 
 app = Flask(__name__)
 openAiClient = OpenAiClient()
+
 
 @app.route('/newMessage', methods=['POST'])
 def newMessage():

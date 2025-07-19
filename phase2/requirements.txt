@@ -1,0 +1,7 @@
+flask>=3.1.1
+gradio>=5.38.0
+requests>=2.32.4
+openai>=1.97.0
+
+# Standard library dependencies (built-in, no installation needed):
+# json - built-in module
